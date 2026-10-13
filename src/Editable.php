@@ -8,12 +8,6 @@ use Stl\Editable\Support\Html;
 
 final class Editable implements \Stringable
 {
-    private const TYPES = [
-        'address', 'checklist', 'combodate', 'date', 'datetime', 'email',
-        'number', 'password', 'select', 'select2', 'tel', 'text', 'textarea',
-        'time', 'url', 'wysihtml5',
-    ];
-
     /**
      * @param scalar|array<array-key, scalar>|null $value
      * @param scalar|array<array-key, scalar>|null $primaryKey
@@ -36,8 +30,8 @@ final class Editable implements \Stringable
         if ($name === '' || $url === '') {
             throw new \InvalidArgumentException('Editable name and URL are required.');
         }
-        if (!in_array($type, self::TYPES, true)) {
-            throw new \InvalidArgumentException('Unsupported editable type: ' . $type);
+        if (!preg_match('/^[a-z][a-z0-9-]*$/', $type)) {
+            throw new \InvalidArgumentException('Editable type must be a lowercase identifier.');
         }
         if (!in_array($mode, ['inline', 'popup'], true)) {
             throw new \InvalidArgumentException('Editable mode must be inline or popup.');
@@ -66,6 +60,7 @@ final class Editable implements \Stringable
             'href' => '#',
             'id' => $this->id(),
             'data-stl-editable' => true,
+            'class' => trim(($this->attributes['class'] ?? '') . ' stl-editable-trigger'),
             'role' => $this->attributes['role'] ?? 'button',
         ]);
 
@@ -93,8 +88,7 @@ final class Editable implements \Stringable
 
         return '<script>(function(init){if(document.readyState==="loading")'
             . '{document.addEventListener("DOMContentLoaded",init);}else{init();}})(function(){var c=' . $id
-            . ';var e=document.getElementById(c.id);if(e&&window.jQuery&&jQuery.fn.editable)'
-            . '{jQuery(e).editable(' . $options . ');}});</script>';
+            . ';if(window.StlEditable){window.StlEditable.create(c.id,' . $options . ');}});</script>';
     }
 
     public function __toString(): string

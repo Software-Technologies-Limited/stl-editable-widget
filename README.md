@@ -4,15 +4,14 @@ STL Editable Widget provides framework-agnostic inline editing controls for PHP
 applications. It can be used from raw PHP, Laravel Blade, Yii views, Symfony,
 and other PHP rendering layers without requiring a framework package.
 
-The browser layer is the customized Bootstrap 3 X-Editable distribution from
-the original `2amigos/yii2-editable-widget` project. This continuation preserves
-the original Git history and BSD-3-Clause license and is not affiliated with or
-endorsed by the original maintainers.
+Version 3 uses an STL-owned vanilla JavaScript browser layer. This continuation
+preserves the original Git history and BSD-3-Clause license and is not affiliated
+with or endorsed by the original maintainers.
 
 ## Requirements
 
 - PHP 8.1 through 8.5
-- jQuery and Bootstrap 3 in the browser
+- A modern browser with Fetch and CustomEvent support
 
 There are no required PHP framework dependencies.
 
@@ -24,10 +23,10 @@ composer require software-technologies-limited/stl-editable-widget
 
 ## Publish the browser assets
 
-Copy `vendor/software-technologies-limited/stl-editable-widget/src/assets` to a
-publicly served directory such as `public/assets/stl-editable`.
+Copy `stl-editable.css` and `stl-editable.js` from the package's `src/assets`
+directory to a publicly served directory.
 
-The default `Assets` configuration expects `/assets/stl-editable`. You can pass
+The default `Assets` configuration expects `/vendor/stl-editable`. You can pass
 a different public URL when necessary:
 
 ```php
@@ -36,16 +35,16 @@ use Stl\Editable\Assets;
 $assets = new Assets('/build/stl-editable');
 ```
 
-Render the required tags once, after loading Bootstrap 3 CSS and jQuery:
+Render the required tags once:
 
 ```php
-<?= $assets->styles(['date', 'select2']) ?>
-<?= $assets->scripts(['date', 'select2']) ?>
+<?= $assets->styles() ?>
+<?= $assets->scripts() ?>
 ```
 
-Supported optional asset groups are `address`, `combodate`, `date`, `datetime`,
-`select2`, and `wysihtml5`. Basic text, textarea, select, checklist, and HTML5
-input types only need the base editable assets.
+Laravel users can publish assets and configuration with
+`php artisan vendor:publish --tag=stl-editable-assets` and
+`php artisan vendor:publish --tag=stl-editable-config`.
 
 ## Raw PHP
 

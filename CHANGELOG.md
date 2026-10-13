@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.0
+
+- Replaced the retained jQuery/Bootstrap X-Editable runtime with an STL-owned
+  vanilla JavaScript implementation.
+- Added CSS design tokens, themes, localized labels, lifecycle events, custom
+  editor type registration, responsive presentation, and fetch-based saving.
+- Added optional Laravel configuration and asset publishing.
+
 ## 2.0.1
 
 - Removed an unconditional browser-side reference to Yii's global CSRF helper.
