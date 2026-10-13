@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.1
+
+- Removed unused legacy X-Editable, Select2, date/time picker, and WYSIHTML5
+  browser assets from the distribution.
+
 ## 3.0.0
 
 - Replaced the retained jQuery/Bootstrap X-Editable runtime with an STL-owned
