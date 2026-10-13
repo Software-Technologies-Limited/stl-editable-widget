@@ -1,180 +1,161 @@
-X-Editable Widget for Yii2
-==========================
+# STL Editable Widget
 
-[![Latest Version](https://img.shields.io/github/tag/2amigos/yii2-editable-widget.svg?style=flat-square&label=release)](https://github.com/2amigos/yii2-editable-widget/tags)
-[![Software License](https://img.shields.io/badge/license-BSD-brightgreen.svg?style=flat-square)](LICENSE.md)
-[![Build Status](https://img.shields.io/travis/2amigos/yii2-editable-widget/master.svg?style=flat-square)](https://travis-ci.org/2amigos/yii2-editable-widget)
-[![Coverage Status](https://img.shields.io/scrutinizer/coverage/g/2amigos/yii2-editable-widget.svg?style=flat-square)](https://scrutinizer-ci.com/g/2amigos/yii2-editable-widget/code-structure)
-[![Quality Score](https://img.shields.io/scrutinizer/g/2amigos/yii2-editable-widget.svg?style=flat-square)](https://scrutinizer-ci.com/g/2amigos/yii2-editable-widget)
-[![Total Downloads](https://img.shields.io/packagist/dt/2amigos/yii2-editable-widget.svg?style=flat-square)](https://packagist.org/packages/2amigos/yii2-editable-widget)
+STL Editable Widget provides framework-agnostic inline editing controls for PHP
+applications. It can be used from raw PHP, Laravel Blade, Yii views, Symfony,
+and other PHP rendering layers without requiring a framework package.
 
-Renders a [X-Editable Input](http://vitalets.github.io/x-editable/index.html) allowing to use the amazing inline capabilities of [X-Editable Plugin](http://vitalets.github.io/x-editable/index.html). 
+The browser layer is the customized Bootstrap 3 X-Editable distribution from
+the original `2amigos/yii2-editable-widget` project. This continuation preserves
+the original Git history and BSD-3-Clause license and is not affiliated with or
+endorsed by the original maintainers.
 
-Important Note
---------------
-We decided to port only the Bootstrap 3 capabilities of [X-Editable Plugin](http://vitalets.github.io/x-editable/index.html) due to the requirements of our projects. We have done quite a lot of work: 
+## Requirements
 
-- The original library has been modified to port it to Yii2. Plugins that we thought didn't belong to the core, we extracted them and implemented them as separated external input types (address, combodate, datepicker, datetimepicker, select2 and wysihtml5 plugins). We thought that separating external types will help everybody to isolate problems and be able to improve the library much better.
-- Plugins have been all updated to their latest versions 
-- Fixed datepicker and datetimepicker types to work with Bootstrap 3 
-- Refactored widget code to make it easier to understand
-- We have not included **EditableColumn**, **EditableListView**, or **EditableDetailView** because we believe they correspond to a different package. They will be developed independently. 
+- PHP 8.1 through 8.5
+- jQuery and Bootstrap 3 in the browser
 
-So, if you have issues to fix, please remember, **THIS IS NOT** an exact copy of X-Editable, this is a Bootstrap 3 enhanced X-Editable plugin ported to Yii2. 
+There are no required PHP framework dependencies.
 
-We welcome everybody to improve this library with their amazing Pull Requests :) and we hope that this will increase the productivity of your Yii2 experience.
+## Installation
 
-So keep this in mind: 
-
-- Widget is based on [X-Editable](http://vitalets.github.io/x-editable/) not on [X-Editable for Yii](http://x-editable.demopage.ru/)
-- It does not work with JQuery UI or as plain JQuery, just Bootstrap and latest version only (not 2.3.2 sorry)
-- If you wish to help improve the library do it, but do not update the library thinking this is the same as X-Editable source, it has been modified. 
-- The supported types are:
-    - text 
-    - textarea 
-    - select 
-    - date 
-    - datetime 
-    - combodate 
-    - html5 types 
-    - checklist 
-    - wysihtml5
-    - select2 
-    - No typeaheadJs - ready for the challenge?
-
-
-Installation
-------------
-The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
-
-Either run
-
-```
-composer require 2amigos/yii2-editable-widget:~1.0
-```
-or add
-
-```json
-"2amigos/yii2-editable-widget" : "~1.0"
+```bash
+composer require software-technologies-limited/stl-editable-widget
 ```
 
-to the require section of your application's `composer.json` file.
+## Publish the browser assets
 
+Copy `vendor/software-technologies-limited/stl-editable-widget/src/assets` to a
+publicly served directory such as `public/assets/stl-editable`.
 
-Usage
------
-There is an amazing site made by [Vitaliy Potapov](https://github.com/vitalets) which shows how to configure the widget. We are not going to explain how to use each one of the again and we encourage you to visit [the documentation section of the plugin's site](http://vitalets.github.io/x-editable/docs.html)
+The default `Assets` configuration expects `/assets/stl-editable`. You can pass
+a different public URL when necessary:
 
+```php
+use Stl\Editable\Assets;
+
+$assets = new Assets('/build/stl-editable');
 ```
+
+Render the required tags once, after loading Bootstrap 3 CSS and jQuery:
+
+```php
+<?= $assets->styles(['date', 'select2']) ?>
+<?= $assets->scripts(['date', 'select2']) ?>
+```
+
+Supported optional asset groups are `address`, `combodate`, `date`, `datetime`,
+`select2`, and `wysihtml5`. Basic text, textarea, select, checklist, and HTML5
+input types only need the base editable assets.
+
+## Raw PHP
+
+```php
 <?php
-use dosamigos\editable\Editable;
 
-// as a widget with a model and a datetime type
-?>
+use Stl\Editable\Editable;
 
-<?= Editable::widget( [
-    'model' => $model,
-    'attribute' => 'created_at',
-    'url' => 'site/test',
-    'type' => 'datetime',
-    'mode' => 'pop',
-    'clientOptions' => [
-        'placement' => 'right',
-        'format' => 'yyyy-mm-dd hh:ii',
-        'viewformat' => 'dd/mm/yyyy hh:ii',
-        'datetimepicker' => [
-            'orientation' => 'top auto'
-           ]
-    ]
-]);?>
-<?php 
-
-// as a widget without a model and a select2 type
-?>
-<?= Editable::widget( [
-    'name' => 'country_code',
-    'value' => '',
-    'url' => 'site/test',
-    'type' => 'select2',
-    'mode' => 'pop',
-    'clientOptions' => [
-        'pk' => 2,
-        'placement' => 'right',
-        'select2' => [
-            'width' => '124px'
-        ],
+$editable = new Editable(
+    name: 'status',
+    url: '/update-field.php',
+    value: 'pending',
+    display: 'Pending',
+    type: 'select',
+    mode: 'popup',
+    primaryKey: 42,
+    options: [
         'source' => [
-            ['id' => 'gb', 'text' => 'Great Britain'],
-            ['id' => 'es', 'text' => 'Spain'],
+            ['value' => 'pending', 'text' => 'Pending'],
+            ['value' => 'complete', 'text' => 'Complete'],
         ],
-    ]
-]);?>
-
-<?php 
-// with an ActiveForm instance displayed as a address input 
-
-use dosamigos\editable\Editable;
+    ],
+    attributes: ['class' => 'editable-value'],
+);
 ?>
-<?= $form->field($model, 'address')->widget(Editable::className(), [
-    'url' => 'site/test',
-    'type' => 'address'
-]);?>
 
-<?php 
-// as datetime type input
-<?= $form->field($model, 'created_at')->widget(Editable::className(), [
-    'url' => 'site/test',
-    'type' => 'datetime',
-    'mode' => 'pop',
-    'clientOptions' => [
-        'placement' => 'right',
-        'format' => 'yyyy-mm-dd hh:ii',
-        'viewformat' => 'dd/mm/yyyy hh:ii',
-        'datepicker' => [
-            'orientation' => 'top auto'
-        ]            
-    ]
-]);?>
+<?= $editable->render() ?>
+<?= $editable->script() ?>
 ```
 
-Testing
--------
+Names, values, IDs, attributes, and JavaScript options are safely encoded.
 
-To test the extension, is better to clone this repository on your computer. After, go to the extensions folder and do
-the following (assuming you have `composer` installed on your computer): 
+## Handling updates
 
-```bash 
-$ composer install --no-interaction --prefer-source --dev
+The neutral request object validates the X-Editable request shape without
+performing framework-specific database operations:
+
+```php
+use Stl\Editable\EditableRequest;
+
+$request = EditableRequest::fromArray($_POST);
+
+// Authorize the current user and validate the allowed field before saving.
+$record = findRecord($request->primaryKey);
+$record->update([$request->name => $request->value]);
 ```
-Once all required libraries are installed then do: 
 
-```bash 
-$ vendor/bin/phpunit
+Always allow-list editable field names and perform authorization and validation
+inside your application. Primary keys are sent as ordinary scalar or array
+values; this package does not use PHP serialization.
+
+## Laravel
+
+Create `Editable` in a controller, component, or view model, then render it in
+Blade as intentional component HTML:
+
+```blade
+{!! $editable->render() !!}
+
+@push('scripts')
+    {!! $editable->script() !!}
+@endpush
 ```
 
+In the update endpoint:
 
-Further Information
--------------------
-Please, check the [X-Editable Plugin](http://vitalets.github.io/x-editable/index.html) documentation for further 
-information about its configuration options. 
+```php
+$editableRequest = \Stl\Editable\EditableRequest::fromArray($request->all());
+```
 
-Contributing
-------------
+Use Laravel authorization, validation, and Eloquent to persist the value.
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+## Yii
 
-Credits
--------
+The same renderer works directly in a Yii view:
 
-- [Antonio Ramirez](https://github.com/tonydspaniard)
-- [All Contributors](../../contributors)
+```php
+$editable = new \Stl\Editable\Editable(
+    name: 'status',
+    url: \yii\helpers\Url::to(['record/update-field']),
+    value: (string) $model->status,
+    primaryKey: $model->getPrimaryKey(),
+);
 
-License
--------
+echo $editable->render();
+echo $editable->script();
+```
 
-The BSD License (BSD). Please see [License File](LICENSE.md) for more information.
+Use `EditableRequest::fromArray(Yii::$app->request->post())` in the controller,
+then apply Yii authorization and model validation. Yii is not installed or
+required by this package.
 
+## Development checks
 
-> [![2amigOS!](http://www.gravatar.com/avatar/55363394d72945ff7ed312556ec041e0.png)](http://www.2amigos.us)  
-<i>Custom Software | Web & Mobile Software Development</i>  
-[www.2amigos.us](http://www.2amigos.us)
+```bash
+composer validate --strict
+if composer show --locked --name-only | grep -q .; then composer audit --locked; fi
+find src -name '*.php' -print0 | xargs -0 -n1 php -l
+```
+
+GitHub Actions runs these checks on PHP 8.1 through 8.5.
+
+## Credits
+
+- Antonio Ramirez and 2amigOS! Consulting Group for the original widget and
+  customized X-Editable assets
+- Contributors to the original project
+- Software Technologies Limited, current maintainer
+
+## License
+
+BSD-3-Clause. See [LICENSE.md](LICENSE.md). The original copyright and license
+notice are retained as required by the license.

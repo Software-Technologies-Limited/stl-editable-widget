@@ -1,207 +1,104 @@
 <?php
-/**
- * @copyright Copyright (c) 2013-2017 2amigOS! Consulting Group LLC
- * @link http://2amigos.us
- * @license http://www.opensource.org/licenses/bsd-license.php New BSD License
- */
-namespace dosamigos\editable;
 
-use yii\base\InvalidConfigException;
-use yii\db\ActiveRecordInterface;
-use yii\helpers\ArrayHelper;
-use yii\helpers\Html;
-use yii\helpers\Json;
-use yii\helpers\Url;
-use yii\web\JsExpression;
-use yii\widgets\InputWidget;
+declare(strict_types=1);
 
-/**
- * Editable renders the amazing x-editable js plugin from vitalets. For more information please visit the
- * [plugin site](http://vitalets.github.io/x-editable/index.html).
- *
- * @author Antonio Ramirez <amigo.cobos@gmail.com>
- * @link http://www.ramirezcobos.com/
- * @link http://www.2amigos.us/
- * @package dosamigos\editable
- */
-class Editable extends InputWidget
+namespace Stl\Editable;
+
+use Stl\Editable\Support\Html;
+
+final class Editable implements \Stringable
 {
-    /**
-     * @var string the type of input. Type of input.
-     */
-    public $type = 'text';
-    /**
-     * @var string the Mode of editable, can be popup or inline.
-     */
-    public $mode = 'inline';
-    /**
-     * @var string optional input id
-     */
-    public $id;
-    /**
-     * @var string placement of bootstrap popover
-     */
-    public $placement = 'top';
-    /**
-     * @var string|array Url for submit, e.g. '/post'. If function - it will be called instead of ajax. Function should
-     * return deferred object to run fail/done callbacks.
-     *
-     * ```
-     * url: function(params) {
-     *  var d = new $.Deferred;
-     *  if(params.value === 'abc') {
-     *      return d.reject('error message'); //returning error via deferred object
-     *  } else {
-     *      //async saving data in js model
-     *      someModel.asyncSaveMethod({
-     *          ...,
-     *          success: function(){
-     *              d.resolve();
-     *          }
-     *      });
-     *      return d.promise();
-     *  }
-     * }
-     * ```
-     */
-    public $url;
-    /**
-     * @var array the options for the X-editable.js plugin.
-     * Please refer to the X-editable.js plugin web page for possible options.
-     * @see http://vitalets.github.io/x-editable/docs.html#editable
-     */
-    public $clientOptions = [];
-    /**
-     * @var array the event handlers for the X-editable.js plugin.
-     * Please refer to the X-editable.js plugin web page for possible options.
-     * @see http://vitalets.github.io/x-editable/docs.html#editable
-     */
-    public $clientEvents = [];
+    private const TYPES = [
+        'address', 'checklist', 'combodate', 'date', 'datetime', 'email',
+        'number', 'password', 'select', 'select2', 'tel', 'text', 'textarea',
+        'time', 'url', 'wysihtml5',
+    ];
 
     /**
-     * Initializes the widget.
-     * This method will register the bootstrap asset bundle. If you override this method,
-     * make sure you call the parent implementation first.
+     * @param scalar|array<array-key, scalar>|null $value
+     * @param scalar|array<array-key, scalar>|null $primaryKey
+     * @param array<string, mixed> $options X-Editable client options
+     * @param array<string, scalar|null> $attributes HTML anchor attributes
      */
-    public function init()
-    {
-        if ($this->url === null) {
-            throw new InvalidConfigException("'Url' property must be specified.");
+    public function __construct(
+        private readonly string $name,
+        private readonly string $url,
+        private readonly string|int|float|bool|array|null $value = null,
+        private readonly string $type = 'text',
+        private readonly string $mode = 'inline',
+        private readonly string $placement = 'top',
+        private readonly string|int|float|bool|array|null $primaryKey = null,
+        private readonly array $options = [],
+        private readonly array $attributes = [],
+        private readonly ?string $id = null,
+        private readonly ?string $display = null,
+    ) {
+        if ($name === '' || $url === '') {
+            throw new \InvalidArgumentException('Editable name and URL are required.');
         }
-        if (!isset($this->options['id'])) {
-            $this->options['id'] = $this->getId();
+        if (!in_array($type, self::TYPES, true)) {
+            throw new \InvalidArgumentException('Unsupported editable type: ' . $type);
         }
-        parent::init();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function run()
-    {
-        $value = $this->value;
-        if ($this->hasModel() && $value === null) {
-            $show = Html::getAttributeValue($this->model, $this->attribute);
-        } elseif (is_callable($value)) {
-            $show = call_user_func($value, $this->model);
-        } else {
-            $show = $value;
-        }
-
-        echo Html::a($show, null, $this->options);
-
-        $this->registerClientScript();
-    }
-
-    /**
-     * Registers X-Editable plugin and the related events
-     */
-    protected function registerClientScript()
-    {
-        $view = $this->getView();
-        $language = ArrayHelper::getValue($this->clientOptions, 'language');
-
-        switch ($this->type) {
-            case 'address':
-                EditableAddressAsset::register($view);
-                break;
-            case 'combodate':
-                EditableComboDateAsset::register($view);
-                break;
-            case 'date':
-                if ($language) {
-                    EditableDatePickerAsset::register(
-                        $view
-                    )->js[] = 'vendor/js/locales/bootstrap-datetimepicker.' . $language . '.js';
-                } else {
-                    EditableDatePickerAsset::register($view);
-                }
-                break;
-            case 'datetime':
-                if ($language) {
-                    EditableDateTimePickerAsset::register(
-                        $view
-                    )->js[] = 'vendor/js/locales/bootstrap-datetimepicker.' . $language . '.js';
-                } else {
-                    EditableDateTimePickerAsset::register($view);
-                }
-                break;
-            case 'select2':
-                EditableSelect2Asset::register($view);
-                break;
-            case 'wysihtml5':
-                $language = $language ?: 'en-US';
-                EditableWysiHtml5Asset::register(
-                    $view
-                )->js[] = 'vendor/locales/bootstrap-wysihtml5.' . $language . '.js';
-                break;
-            default:
-                EditableBootstrapAsset::register($view);
-        }
-
-        $id = ArrayHelper::remove($this->clientOptions, 'selector', '#' . $this->options['id']);
-
-        // Escape meta-characters in element Id
-        // http://api.jquery.com/category/selectors/
-        // This actually only needs to be done for dots, since Html::getInputId
-        // will enforce word-only characters.
-        $id = preg_replace('/([.])/', '\\\\\\\$1', $id);
-
-        $this->clientOptions['url'] = $this->url instanceof JsExpression ? $this->url : Url::toRoute($this->url);
-        $this->clientOptions['type'] = $this->type;
-        $this->clientOptions['mode'] = $this->mode;
-        $this->clientOptions['name'] = $this->attribute ?: $this->name;
-        $this->clientOptions['placement'] = $this->placement;
-        $pk = ArrayHelper::getValue(
-            $this->clientOptions,
-            'pk',
-            $this->hasActiveRecord() ? $this->model->getPrimaryKey() : null
-        );
-        $this->clientOptions['pk'] = base64_encode(serialize($pk));
-        if ($this->hasActiveRecord() && $this->model->isNewRecord) {
-            $this->clientOptions['send'] = 'always'; // send to server without pk
-        }
-
-        $options = Json::encode($this->clientOptions);
-        $js = "jQuery('$id').editable($options);";
-        $view->registerJs($js);
-
-        if (!empty($this->clientEvents)) {
-            $js = [];
-            foreach ($this->clientEvents as $event => $handler) {
-                $js[] = "jQuery('$id').on('$event', $handler);";
-            }
-            $view->registerJs(implode("\n", $js));
+        if (!in_array($mode, ['inline', 'popup'], true)) {
+            throw new \InvalidArgumentException('Editable mode must be inline or popup.');
         }
     }
 
-    /**
-     * To ensure that `getPrimaryKey()` and `getIsNewRecord()` methods are implemented in model.
-     * You can override this method if your model in not instance of `ActiveRecord` but simulates its behavior with these methods.
-     * @return bool
-     */
-    protected function hasActiveRecord()
+    public function id(): string
     {
-        return $this->hasModel() && $this->model instanceof ActiveRecordInterface;
+        if ($this->id !== null && $this->id !== '') {
+            return $this->id;
+        }
+
+        $base = strtolower(trim((string) preg_replace('/[^A-Za-z0-9_-]+/', '-', $this->name), '-'));
+
+        return ($base !== '' ? $base : 'stl') . '-editable';
+    }
+
+    public function type(): string
+    {
+        return $this->type;
+    }
+
+    public function render(): string
+    {
+        $attributes = array_merge($this->attributes, [
+            'href' => '#',
+            'id' => $this->id(),
+            'data-stl-editable' => true,
+            'role' => $this->attributes['role'] ?? 'button',
+        ]);
+
+        $display = $this->display;
+        if ($display === null && is_scalar($this->value)) {
+            $display = (string) $this->value;
+        }
+
+        return '<a' . Html::attributes($attributes) . '>' . Html::escape($display ?? '') . '</a>';
+    }
+
+    public function script(): string
+    {
+        $configuration = array_merge($this->options, [
+            'url' => $this->url,
+            'type' => $this->type,
+            'mode' => $this->mode,
+            'name' => $this->name,
+            'placement' => $this->placement,
+            'pk' => $this->primaryKey,
+            'value' => $this->value,
+        ]);
+        $id = Html::json(['id' => $this->id()]);
+        $options = Html::json($configuration);
+
+        return '<script>(function(init){if(document.readyState==="loading")'
+            . '{document.addEventListener("DOMContentLoaded",init);}else{init();}})(function(){var c=' . $id
+            . ';var e=document.getElementById(c.id);if(e&&window.jQuery&&jQuery.fn.editable)'
+            . '{jQuery(e).editable(' . $options . ');}});</script>';
+    }
+
+    public function __toString(): string
+    {
+        return $this->render();
     }
 }
