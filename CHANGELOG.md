@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.1
+
+- Removed an unconditional browser-side reference to Yii's global CSRF helper.
+- Added optional framework-neutral CSRF discovery through standard meta tags.
+
 ## Unreleased
 
 - Adopted as `software-technologies-limited/stl-editable-widget`.

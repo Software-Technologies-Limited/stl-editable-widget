@@ -615,8 +615,19 @@
      Note: following params could redefined in engine: bootstrap or jqueryui:
      Classes 'control-group' and 'editable-error-block' must always present!
      */
+    var csrfParam = window.yii && typeof window.yii.getCsrfParam === 'function'
+        ? window.yii.getCsrfParam()
+        : $('meta[name="csrf-param"]').attr('content');
+    var csrfToken = window.yii && typeof window.yii.getCsrfToken === 'function'
+        ? window.yii.getCsrfToken()
+        : $('meta[name="csrf-token"]').attr('content');
+    var csrfInput = csrfParam && csrfToken
+        ? '<input type="hidden" name="' + $('<div>').text(csrfParam).html()
+            + '" value="' + $('<div>').text(csrfToken).html() + '">'
+        : '';
+
     $.fn.editableform.template = '<form class="form-inline editableform" onsubmit="return false;">' +
-        '<input type="hidden" name="' + ((yii && yii.getCsrfParam()) || '_csrf') + '" value="' + (yii && yii.getCsrfToken()) + '">' +
+        csrfInput +
         '<div class="control-group">' +
         '<div><div class="editable-input"></div><div class="editable-buttons"></div></div>' +
         '<div class="editable-error-block"></div>' +
